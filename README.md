@@ -1,8 +1,70 @@
-# Getting Started with Create React App
+# Vibe 30: Quick Activity Generator
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Vibe 30 is a web application that helps users discover and organize 30-minute activities. Users can create custom buckets of activities, randomly select activities when they're unsure what to do, and share their favorite activity collections with the community.
 
-## Available Scripts
+## Features
+
+### Core Features
+
+- **Activity Buckets**: Create and manage themed collections of 30-minute activities
+- **Random Activity Generator**: Get a random activity suggestion from your selected bucket
+- **User Accounts**: Save your buckets and activities across sessions
+- **Community Sharing**: Share your activity buckets with other users
+
+### User Flow
+
+1. User creates an account/logs in
+2. Creates custom buckets (e.g., "Outdoor Activities", "Learning", "Creative Projects")
+3. Adds activities to their buckets
+4. Can draw random activities from specific buckets
+5. Option to share buckets with the community
+
+## Technical Architecture
+
+### Frontend (React + TypeScript)
+
+- User authentication interface
+- Bucket management dashboard
+- Activity creation and management
+- Random activity generator
+- Community shared buckets browser
+
+### Backend (Node.js + Express)
+
+- RESTful API endpoints
+- User authentication system
+- Database management
+- Activity randomization logic
+
+### Database Schema
+
+**Users**
+
+- id (PK)
+- username
+- email
+- password_hash
+- created_at
+
+**Buckets**
+
+- id (PK)
+- user_id (FK)
+- name
+- description
+- is_public
+- created_at
+
+**Activities**
+
+- id (PK)
+- bucket_id (FK)
+- name
+- description
+- estimated_duration
+- created_at
+
+## Development Setup
 
 In the project directory, you can run:
 
