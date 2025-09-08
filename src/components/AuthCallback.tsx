@@ -19,8 +19,8 @@ export default function AuthCallback() {
         }
 
         if (data.session) {
-          // Successfully authenticated, redirect to home
-          navigate("/");
+          // Successfully authenticated, redirect to dashboard
+          navigate("/dashboard");
         } else {
           // No session, redirect to login
           navigate("/login");

@@ -1,13 +1,12 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { useAuth } from "../contexts/AuthContext";
-import { LogOut, User } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 function Home() {
   const [isShaking, setIsShaking] = useState(false);
   const [showActivity, setShowActivity] = useState(false);
-  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
 
   const activities = [
     "Take a mindful walk",
@@ -29,44 +28,12 @@ function Home() {
     }, 1000);
   };
 
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-    } catch (error) {
-      console.error("Sign out failed:", error);
-    }
+  const handleGetStarted = () => {
+    navigate("/login");
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-100 via-pink-50 to-blue-100">
-      {/* Header with User Info */}
-      <div className="bg-white/80 backdrop-blur-sm border-b border-white/20">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-                <User className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Welcome back,</p>
-                <p className="font-semibold text-gray-900">
-                  {user?.user_metadata?.full_name || user?.email || "User"}
-                </p>
-              </div>
-            </div>
-            <Button
-              onClick={handleSignOut}
-              variant="outline"
-              size="sm"
-              className="flex items-center space-x-2 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-colors"
-            >
-              <LogOut className="w-4 h-4" />
-              <span>Sign Out</span>
-            </Button>
-          </div>
-        </div>
-      </div>
-
       {/* Hero Section */}
       <div className="container mx-auto px-4 py-16 md:py-24">
         <div className="text-center max-w-4xl mx-auto">
@@ -151,6 +118,7 @@ function Home() {
             className="mb-16"
           >
             <Button
+              onClick={handleGetStarted}
               size="lg"
               className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
             >

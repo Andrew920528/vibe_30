@@ -34,3 +34,5 @@ core
 
 .env
 
+db_sql/*
+

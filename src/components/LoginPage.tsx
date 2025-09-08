@@ -11,23 +11,84 @@ import {
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Separator } from "./ui/separator";
-import { Loader2, Globe } from "lucide-react";
+import { Loader2, Globe, Mail, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "../../supabase";
 
 export default function LoginPage() {
   const { signInWithGoogle, loading } = useAuth();
   const [isSigningIn, setIsSigningIn] = useState(false);
+  const [isSigningUp, setIsSigningUp] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleGoogleSignIn = async () => {
     try {
       setIsSigningIn(true);
+      setError("");
+      setMessage("");
       await signInWithGoogle();
       // The redirect will happen automatically
     } catch (error) {
       console.error("Sign in failed:", error);
+      setError("Google sign-in failed. Please try again.");
       setIsSigningIn(false);
     }
+  };
+
+  const handleEmailAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setMessage("");
+    setIsLoading(true);
+
+    if (isSigningUp && password !== confirmPassword) {
+      setError("Passwords do not match");
+      setIsLoading(false);
+      return;
+    }
+
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters");
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      if (isSigningUp) {
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+        });
+        if (error) throw error;
+        setMessage("Check your email for a confirmation link!");
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        if (error) throw error;
+        navigate("/dashboard");
+      }
+    } catch (error: any) {
+      setError(error.message || "Authentication failed");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const toggleMode = () => {
+    setIsSigningUp(!isSigningUp);
+    setError("");
+    setMessage("");
+    setEmail("");
+    setPassword("");
+    setConfirmPassword("");
   };
 
   if (loading) {
@@ -49,17 +110,19 @@ export default function LoginPage() {
             <Globe className="w-6 h-6 text-white" />
           </div>
           <CardTitle className="text-2xl font-bold text-gray-900">
-            Welcome Back
+            {isSigningUp ? "Create Account" : "Welcome Back"}
           </CardTitle>
           <CardDescription className="text-gray-600">
-            Sign in to your account to continue
+            {isSigningUp
+              ? "Sign up to get started with Vibe-30"
+              : "Sign in to your account to continue"}
           </CardDescription>
         </CardHeader>
 
         <CardContent className="space-y-4">
           <Button
             onClick={handleGoogleSignIn}
-            disabled={isSigningIn}
+            disabled={isSigningIn || isLoading}
             className="w-full bg-white text-gray-900 border border-gray-300 hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 h-12"
           >
             {isSigningIn ? (
@@ -98,44 +161,105 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label
-              htmlFor="email"
-              className="text-sm font-medium text-gray-700"
-            >
-              Email
-            </Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="Enter your email"
-              className="h-12"
-            />
-          </div>
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
+              {error}
+            </div>
+          )}
 
-          <div className="space-y-2">
-            <Label
-              htmlFor="password"
-              className="text-sm font-medium text-gray-700"
-            >
-              Password
-            </Label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="Enter your password"
-              className="h-12"
-            />
-          </div>
+          {message && (
+            <div className="bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-lg text-sm">
+              {message}
+            </div>
+          )}
 
-          <Button className="w-full h-12 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium transition-all duration-200">
-            Sign In
-          </Button>
+          <form onSubmit={handleEmailAuth} className="space-y-4">
+            <div className="space-y-2">
+              <Label
+                htmlFor="email"
+                className="text-sm font-medium text-gray-700"
+              >
+                Email
+              </Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="Enter your email"
+                  className="h-12 pl-10"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label
+                htmlFor="password"
+                className="text-sm font-medium text-gray-700"
+              >
+                Password
+              </Label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="Enter your password"
+                  className="h-12 pl-10"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+
+            {isSigningUp && (
+              <div className="space-y-2">
+                <Label
+                  htmlFor="confirmPassword"
+                  className="text-sm font-medium text-gray-700"
+                >
+                  Confirm Password
+                </Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="confirmPassword"
+                    type="password"
+                    placeholder="Confirm your password"
+                    className="h-12 pl-10"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+            )}
+
+            <Button
+              type="submit"
+              disabled={isLoading || isSigningIn}
+              className="w-full h-12 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium transition-all duration-200"
+            >
+              {isLoading ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : null}
+              {isSigningUp ? "Create Account" : "Sign In"}
+            </Button>
+          </form>
 
           <div className="text-center text-sm text-gray-600">
-            Don't have an account?{" "}
-            <button className="text-blue-600 hover:text-blue-700 font-medium transition-colors">
-              Sign up
+            {isSigningUp
+              ? "Already have an account? "
+              : "Don't have an account? "}
+            <button
+              onClick={toggleMode}
+              className="text-blue-600 hover:text-blue-700 font-medium transition-colors"
+            >
+              {isSigningUp ? "Sign in" : "Sign up"}
             </button>
           </div>
         </CardContent>
